@@ -9,5 +9,6 @@
 #include <vector>
 #include <algorithm>
 #include <iostream>
+#include <SFML/Graphics.hpp>
 
 #endif
