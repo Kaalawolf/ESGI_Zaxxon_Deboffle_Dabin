@@ -32,6 +32,8 @@ private:
 	std::shared_ptr<Entity> player;
 
 	sf::Texture playerTexture;
+	sf::Texture bWallTexture;
+	sf::Texture tWallTexture;
 private:
 	void initWindow();
 	void initSprites();
@@ -39,7 +41,7 @@ private:
 	void initTextures();
 
 	void update(sf::Time elapsedTime);
-	void render();
+	void render(sf::Time elapsedTime);
 
 	void processEvents();
 	void handleInput(sf::Keyboard::Key key, bool pressed);
