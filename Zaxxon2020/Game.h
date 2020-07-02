@@ -4,8 +4,8 @@
 
 #include "Entity.h"
 
-const int mWindowsHeight = 600;
-const int mWindowsWidth = 840;
+const int mWindowsHeight = 800;
+const int mWindowsWidth = 1000;
 const sf::String gameTitle = "Zaxxon 2020";
 
 class Game
