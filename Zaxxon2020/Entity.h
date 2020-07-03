@@ -29,6 +29,8 @@ public:
 	sf::Sprite sprite;
 	sf::Vector2u size;
 	EntityType type;
+	int column;
+	int line;
 
 private:
 	sf::Vector2f worldPosition;
