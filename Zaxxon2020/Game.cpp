@@ -143,12 +143,14 @@ void Game::generateWallAtWorldPositionY(float y) {
     // y = 8.5
     // z = 16
     sf::Vector2f wallScreenDimensions(28, 30);
+    int holePos = rand() % 9;
+
 
     sf::Vector2f wallWorldDimensions = Entity::screenToWorldPositions(wallScreenDimensions);
     sf::Vector2f wallSpotWorld = sf::Vector2f(0, y);
     for (int column = 0; column < 10; column++) {
         for (int line = 10; line > 0; line--) {
-            if (line == 1 && column < 8 && column > 5)
+            if (line == 1 && column <= holePos + 2 && column > holePos)
                 continue;
             sf::Sprite wall;
 
@@ -181,7 +183,7 @@ void Game::update(sf::Time elapsedTime) {
         if(player->getWorldPositionZ() > 0)
             player->setWorldZ(player->getWorldPositionZ() - playerXSpeed * elapsedTime.asSeconds());
     } else {
-        if (playerIsMovingUp ) {
+        if (playerIsMovingUp) {
             // && getScreenPositionFromScreenX(Entity::worldToScreenPositions(player->getWorldPosition).x).y < 
             movement.y -= playerYSpeed;
         }
@@ -190,7 +192,7 @@ void Game::update(sf::Time elapsedTime) {
         if (playerIsMovingLeft && player->getWorldPosition().x > 0) {
             movement.x -= playerXSpeed;
         }
-        if (playerIsMovingRight) {
+        if (playerIsMovingRight && player->getWorldPosition().x < (Entity::screenToWorldPositions(sf::Vector2f(28, 30)).x - 12) * 10) {
             movement.x += playerXSpeed;
         }
     }
@@ -224,9 +226,6 @@ void Game::manageCollisions() {
                 std::cout << "collision !" << std::endl;
                 viewSpeed = 0.f;
                 dead = true;
-            }
-            else {
-                //std::cout << "c'est pas coll :( !" << std::endl;
             }
             // std::cout << " Player = (" << player->getWorldPosition().x << ", " << player->getWorldPosition().y << ", " << player->getWorldPositionZ() << ")" << std::endl;
             // std::cout << " Wall = (" << entity->getWorldPosition().x << ", " << entity->getWorldPosition().y << ", " << entity->getWorldPositionZ() << ")" << std::endl;
