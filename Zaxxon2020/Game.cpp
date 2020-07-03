@@ -2,10 +2,9 @@
 
 const float Game::playerXSpeed = 100.f;
 const float Game::playerYSpeed = 100.f;
-const float Game::viewSpeed = 40.f;
-const sf::Vector2f Game::startPos = sf::Vector2f(0, 500);
+const sf::Vector2f Game::startPos = sf::Vector2f(0, 0);
 const float Game::zoom = 0.5;
-const float Game::zMax = 166;
+const float Game::zMax = 160;
 
 Game::Game() {
     initWindow();
@@ -29,17 +28,18 @@ void Game::initTextures() {
 }
 
 void Game::initView() {
+    viewSpeed = 40.f;
+    viewVector = Entity::worldToScreenPositions(sf::Vector2f(0, -1)) * viewSpeed; //Référentiel de la caméra
     // Used for initializing view -> called from ctor
     view.reset(sf::FloatRect(0, 0, mWindowsWidth, mWindowsHeight));
     //view.rotate(10.f);
-    view.zoom(zoom);
+    //view.zoom(zoom);
     view.setCenter(startPos);
     mWindow.setView(view);
 }
 
 void Game::render(sf::Time elapsedTime) {
     //Used draw elements on screen -> called from run
-    const sf::Vector2f viewVector = Entity::worldToScreenPositions(sf::Vector2f(0, -1)) * viewSpeed; //Référentiel de la caméra
 
     mWindow.clear();
     sf::View v = mWindow.getView();
@@ -67,9 +67,11 @@ void Game::run() {
         sf::Time elapsedTime = clock.restart();
         timeSinceLastUpdate += elapsedTime;
         processEvents();
-        update(elapsedTime);
+        if (!dead) {
+            update(elapsedTime);
+            manageCollisions();
+        }
         render(elapsedTime);
-        manageCollisions();
     }
 }
 
@@ -113,7 +115,7 @@ sf::Vector2f Game::getScreenPositionFromScreenX(float x) {
 void Game::initSprites() {
     // Used to initialize all sprites -> called from ctor
 
-    for (float wallY = -15; wallY > -100; wallY -= 15) {
+    for (float wallY = -15; wallY > -1000; wallY -= 150) {
         generateWallAtWorldPositionY(wallY);
     }
     
@@ -133,8 +135,8 @@ void Game::initSprites() {
 
 }
 
-void Game::generateWallAtWorldPositionY(float x) {
-    sf::Vector2f wallSpotScreen = getScreenPositionFromScreenX(x);
+void Game::generateWallAtWorldPositionY(float y) {
+    sf::Vector2f wallSpotScreen = getScreenPositionFromScreenX(y);
     // 18 y 28 x
     // x = 25.5
     // y = 8.5
@@ -142,7 +144,7 @@ void Game::generateWallAtWorldPositionY(float x) {
     sf::Vector2f wallScreenDimensions(28, 8.5 + 16);
 
     sf::Vector2f wallWorldDimensions = Entity::screenToWorldPositions(wallScreenDimensions);
-    sf::Vector2f wallSpotWorld = Entity::screenToWorldPositions(wallSpotScreen);
+    sf::Vector2f wallSpotWorld = sf::Vector2f(0, y);
     for (int column = 0; column < 10; column++) {
         for (int line = 10; line > 0; line--) {
             if (line == 10 && column < 8 && column > 5)
@@ -195,7 +197,6 @@ void Game::update(sf::Time elapsedTime) {
     }
     sf::Vector2f playerPos = player->getWorldPosition();
     player->setWorldPosition(player->getWorldPosition() + (movement * elapsedTime.asSeconds()));
-
 }
 
 void Game::manageCollisions() {
@@ -215,22 +216,16 @@ void Game::manageCollisions() {
             float entityHeight = std::abs(entityPosEnd.y - entityPos.y);
             float entityWidth = std::abs(entityPosEnd.x - entityPos.x);
 
-            /* Rect1 = wall
-                (entityPos.x < playerPos.x + playerPos.width &&
-               entityPos.x + entityPos.width > playerPos.x &&
-               entityPos.y < playerPos.y + rect2.height &&
-               entityPos.height + entityPos.y > playerPos.y)*/
-
             if (entityPos.x < playerPos.x + playerWidth &&
                 entityPos.x + playerWidth > playerPos.x &&
-                entityPos.y < playerPos.y + entityWidth &&
-                entityHeight + entityPos.y > playerPos.y &&
-                player->getWorldPositionZ() > entity->getWorldPositionZ() - 16 &&
-                player->getWorldPositionZ() < entity->getWorldPositionZ()) {
+                player->getWorldPositionZ() >= entity->getWorldPositionZ() &&
+                player->getWorldPositionZ() <= entity->getWorldPositionZ() + 16) {
                 std::cout << "collision !" << std::endl;
+                dead = true;
+                viewSpeed = 0.f;
+                viewVector = Entity::worldToScreenPositions(sf::Vector2f(0, -1)) * viewSpeed; //Référentiel de la caméra
             }
             else {
-
                 std::cout << "c'est pas coll :( !" << std::endl;
             }
         }

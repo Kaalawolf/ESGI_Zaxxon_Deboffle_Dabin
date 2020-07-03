@@ -18,7 +18,7 @@ public:
 private:
 	static const float playerXSpeed;
 	static const float playerYSpeed;
-	static const float viewSpeed;
+	float viewSpeed;
 	static const sf::Vector2f startPos;
 	static const float zoom;
 	static const float zMax;
@@ -27,6 +27,8 @@ private:
 	bool playerIsMovingRight;
 	bool playerIsMovingDown;
 	sf::Vector2f viewVector;
+
+	bool dead = false;
 	
 
 	sf::RenderWindow mWindow;
