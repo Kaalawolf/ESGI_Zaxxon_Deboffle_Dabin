@@ -11,7 +11,8 @@ enum EntityType
 	enemyMasterWeapon,
 	enemy,
 	enemyMaster,
-	block
+	block,
+	ui
 };
 
 class Entity
@@ -27,6 +28,7 @@ public:
 	static sf::Vector2f screenToWorldPositions(sf::Vector2f positions);
 	sf::Sprite sprite;
 	sf::Vector2u size;
+	EntityType type;
 
 private:
 	sf::Vector2f worldPosition;

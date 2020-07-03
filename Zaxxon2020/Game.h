@@ -19,10 +19,14 @@ private:
 	static const float playerXSpeed;
 	static const float playerYSpeed;
 	static const float viewSpeed;
+	static const sf::Vector2f startPos;
+	static const float zoom;
+	static const float zMax;
 	bool playerIsMovingUp;
 	bool playerIsMovingLeft;
 	bool playerIsMovingRight;
 	bool playerIsMovingDown;
+	sf::Vector2f viewVector;
 	
 
 	sf::RenderWindow mWindow;
@@ -42,9 +46,12 @@ private:
 
 	void update(sf::Time elapsedTime);
 	void render(sf::Time elapsedTime);
+	void manageCollisions();
 
 	void processEvents();
 	void handleInput(sf::Keyboard::Key key, bool pressed);
+	sf::Vector2f getScreenPositionFromScreenX(float x);
+	void generateWallAtWorldPositionY(float x);
 };
 
 #endif
