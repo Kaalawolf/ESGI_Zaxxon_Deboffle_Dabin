@@ -7,6 +7,7 @@ const float Game::zoom = 0.5;
 const float Game::zMax = 145;
 const float Game::bulletSpeed = 1.5f;
 const float Game::enemySpeed = 10;
+const float Game::maxY = -100000;
 
 Game::Game() {
     initWindow();
@@ -15,6 +16,7 @@ Game::Game() {
     initSprites();
 
     bulletVector = Entity::screenToWorldPositions(viewVector) * bulletSpeed;
+    xMax = (Entity::screenToWorldPositions(sf::Vector2f(28, 30)).x - 12) * 10;
 }
 
 void Game::resetGame() {
@@ -59,10 +61,17 @@ void Game::render(sf::Time elapsedTime) {
 
     mWindow.clear();
     sf::View v = mWindow.getView();
-    if (!dead) {
-        v.move(viewVector * elapsedTime.asSeconds());
-        mWindow.setView(v);
-    }
+    v.move(viewVector * elapsedTime.asSeconds());
+    mWindow.setView(v);
+
+    sf::ConvexShape convex;
+    convex.setPointCount(4);
+    convex.setPoint(0, Entity::worldToScreenPositions(sf::Vector2f(9, 0)));
+    convex.setPoint(1, Entity::worldToScreenPositions(sf::Vector2f(xMax + 20, 0)));
+    convex.setPoint(2, Entity::worldToScreenPositions(sf::Vector2f(xMax + 20, maxY)));
+    convex.setPoint(3, Entity::worldToScreenPositions(sf::Vector2f(9, maxY)));
+    convex.setFillColor(sf::Color(224, 224, 224));
+    mWindow.draw(convex);
 
     for (std::shared_ptr<Entity> entity : m_Entities) {
         if(entity->displayable)
@@ -71,9 +80,13 @@ void Game::render(sf::Time elapsedTime) {
 
 
     //Slider
+    renderSlider();
+}
+
+void Game::renderSlider() {
     sf::RectangleShape slider_sprite(sf::Vector2f(15, player->getWorldPositionZ()));
     slider_sprite.setFillColor(sf::Color::White);
-    slider_sprite.setPosition(v.getCenter().x - (mWindowsWidth * zoom) / 2 + 15, v.getCenter().y + (mWindowsHeight * zoom) / 2 - 80 - player->getWorldPositionZ());
+    slider_sprite.setPosition(mWindow.getView().getCenter().x - (mWindowsWidth * zoom) / 2 + 15, mWindow.getView().getCenter().y + (mWindowsHeight * zoom) / 2 - 80 - player->getWorldPositionZ());
     mWindow.draw(slider_sprite);
     mWindow.display();
 }
@@ -307,7 +320,7 @@ void Game::updatePlayer(sf::Time elapsedTime) {
         if (playerIsMovingLeft && player->getWorldPosition().x > 0) {
             movement.x -= playerXSpeed;
         }
-        if (playerIsMovingRight && player->getWorldPosition().x < (Entity::screenToWorldPositions(sf::Vector2f(28, 30)).x - 12) * 10) {
+        if (playerIsMovingRight && player->getWorldPosition().x < xMax) {
             movement.x += playerXSpeed;
         }
     }

@@ -24,10 +24,12 @@ private:
 	static const float zMax;
 	static const float bulletSpeed;
 	static const float enemySpeed;
+	static const float maxY;
 	bool playerIsMovingUp;
 	bool playerIsMovingLeft;
 	bool playerIsMovingRight;
 	bool playerIsMovingDown;
+	float xMax;
 
 	bool paused;
 	sf::Vector2f viewVector;
@@ -68,6 +70,7 @@ private:
 
 	void updatePlayer(sf::Time elapsedTime);
 	void render(sf::Time elapsedTime);
+	void renderSlider();
 	void manageBullets(sf::Time elapsedTime);
 	void manageCollisions();
 
