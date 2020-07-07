@@ -11,8 +11,7 @@ enum EntityType
 	enemyMasterWeapon,
 	enemy,
 	enemyMaster,
-	block,
-	ui
+	block
 };
 
 class Entity
@@ -31,6 +30,7 @@ public:
 	EntityType type;
 	int column;
 	int line;
+	bool displayable;
 
 private:
 	sf::Vector2f worldPosition;

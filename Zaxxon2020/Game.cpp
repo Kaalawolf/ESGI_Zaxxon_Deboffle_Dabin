@@ -30,8 +30,8 @@ void Game::initWindow() {
 void Game::initTextures() {
     // Used for loading texture files from assets -> called from ctor
     playerTexture.loadFromFile("assets/ship/1.png");
-    bWallTexture.loadFromFile("assets/wall/2.png");
     tWallTexture.loadFromFile("assets/wall/1.png");
+    enemyTexture.loadFromFile("assets/ennemi/1.png");
 }
 
 void Game::initView() {
@@ -56,7 +56,8 @@ void Game::render(sf::Time elapsedTime) {
     }
 
     for (std::shared_ptr<Entity> entity : m_Entities) {
-        mWindow.draw(entity->sprite);
+        if(entity->displayable)
+            mWindow.draw(entity->sprite);
     }
 
 
@@ -77,7 +78,8 @@ void Game::run() {
         timeSinceLastUpdate += elapsedTime;
         processEvents();
         if (!dead) {
-            update(elapsedTime);
+            updatePlayer(elapsedTime);
+            manageEnemy(elapsedTime);
             manageCollisions();
         }
         render(elapsedTime);
@@ -128,14 +130,29 @@ void Game::initSprites() {
     // Used to initialize all sprites -> called from ctor
 
     for (float wallY = -150; wallY > -1000; wallY -= 150) {
-        generateWallAtWorldPositionY(wallY);
+       generateWallAtWorldPositionY(wallY);
     }
     
-
     // Player
     initPlayer();
 
+    initEnemy();
+}
 
+void Game::resetEnemy() {
+    enemy->displayable = false;
+}
+
+void Game::initEnemy() {
+    enemy = std::make_shared<Entity>();
+    sf::Sprite sprite;
+    sprite.setTexture(enemyTexture);
+    enemy->sprite = sprite;
+    enemy->type = EntityType::enemy;
+    enemy->displayable = false;
+    sf::Vector2f worldSize = Entity::screenToWorldPositions(sf::Vector2f(enemyTexture.getSize().x, enemyTexture.getSize().y));
+    enemy->size = sf::Vector2u(worldSize.x, worldSize.y);
+    m_Entities.push_back(enemy);
 }
 
 void Game::initPlayer() {
@@ -144,7 +161,6 @@ void Game::initPlayer() {
     mPlayer.setTexture(playerTexture);
     player->sprite = mPlayer;
     player->type = EntityType::player;
-    player->size = playerTexture.getSize();
     sf::Vector2f worldSize = Entity::screenToWorldPositions(sf::Vector2f(playerTexture.getSize().x, playerTexture.getSize().y));
     player->size = sf::Vector2u(worldSize.x, worldSize.y);
     m_Entities.push_back(player);
@@ -152,6 +168,7 @@ void Game::initPlayer() {
 }
 
 void Game::resetPlayer() {
+    player->displayable = true;
     player->setWorldPosition(Entity::screenToWorldPositions(startPos));
     player->setWorldZ(0);
 }
@@ -177,6 +194,7 @@ void Game::generateWallAtWorldPositionY(float y) {
             std::shared_ptr<Entity> e_wall = std::make_shared<Entity>();
             e_wall->sprite = wall;
             e_wall->type = EntityType::block;
+            e_wall->displayable = true;
             e_wall->size = sf::Vector2u(wallWorldDimensions.x, wallWorldDimensions.y);
             e_wall->setWorldPosition( sf::Vector2f(
                 wallSpotWorld.x + (wallWorldDimensions.x - 11) * column,
@@ -190,7 +208,25 @@ void Game::generateWallAtWorldPositionY(float y) {
     }
 }
 
-void Game::update(sf::Time elapsedTime) {
+void Game::manageEnemy(sf::Time elapsedTime) {
+    if (enemy->displayable) {
+        sf::Vector2f vecPos = player->getWorldPosition();
+        enemy->setWorldPosition(sf::Vector2f(vecPos.x, enemy->getWorldPosition().y  + 2 * elapsedTime.asSeconds()));
+        enemy->setWorldZ(player->getWorldPositionZ());
+    }
+    else {
+        int random = rand() % 9;
+        if (random == 0) {
+            std::cout << "caca" << std::endl;
+            enemy->displayable = true;
+            enemy->setWorldPosition(sf::Vector2f(player->getWorldPosition().x, player->getWorldPosition().y - 200));
+            enemy->setWorldZ(player->getWorldPositionZ());
+        }
+    }
+
+}
+
+void Game::updatePlayer(sf::Time elapsedTime) {
     // Used for update all sprites states -> called from run
     sf::Vector2f movement = Entity::screenToWorldPositions(viewVector);
     // sf::Vector2f movement = Entity::screenToWorldPositions(sf::Vector2f(0,0));
@@ -242,9 +278,13 @@ void Game::manageCollisions() {
                 entityPos.x + playerWidth / 2 >= playerPos.x &&
                 player->getWorldPositionZ() >= entity->getWorldPositionZ() &&
                 player->getWorldPositionZ() <= entity->getWorldPositionZ() + 16) {
-                std::cout << "collision !" << std::endl;
-                viewSpeed = 0.f;
-                dead = true;
+                if (entity->type == EntityType::block) {
+                    viewSpeed = 0.f;
+                    dead = true;
+                }
+                else if (entity->type == EntityType::enemy) {
+                    entity->displayable = false;
+                }
             }
             // std::cout << " Player = (" << player->getWorldPosition().x << ", " << player->getWorldPosition().y << ", " << player->getWorldPositionZ() << ")" << std::endl;
             // std::cout << " Wall = (" << entity->getWorldPosition().x << ", " << entity->getWorldPosition().y << ", " << entity->getWorldPositionZ() << ")" << std::endl;

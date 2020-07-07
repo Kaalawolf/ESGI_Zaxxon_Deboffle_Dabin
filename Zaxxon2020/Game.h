@@ -36,10 +36,11 @@ private:
 
 	std::vector<std::shared_ptr<Entity>> m_Entities;
 	std::shared_ptr<Entity> player;
+	std::shared_ptr<Entity> enemy;
 
 	sf::Texture playerTexture;
-	sf::Texture bWallTexture;
 	sf::Texture tWallTexture;
+	sf::Texture enemyTexture;
 private:
 	void initWindow();
 	void initSprites();
@@ -50,7 +51,11 @@ private:
 	void resetPlayer();
 	void initPlayer();
 
-	void update(sf::Time elapsedTime);
+	void initEnemy();
+	void manageEnemy(sf::Time elapsedTime);
+	void resetEnemy();
+
+	void updatePlayer(sf::Time elapsedTime);
 	void render(sf::Time elapsedTime);
 	void manageCollisions();
 
