@@ -28,6 +28,8 @@ private:
 	bool playerIsMovingLeft;
 	bool playerIsMovingRight;
 	bool playerIsMovingDown;
+
+	bool paused;
 	sf::Vector2f viewVector;
 	sf::Vector2f bulletVector;
 
@@ -61,6 +63,8 @@ private:
 	void resetEnemy();
 
 	void initPlayerBullet();
+
+	void handleGameOver();
 
 	void updatePlayer(sf::Time elapsedTime);
 	void render(sf::Time elapsedTime);

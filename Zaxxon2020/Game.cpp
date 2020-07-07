@@ -21,8 +21,10 @@ void Game::resetGame() {
     srand((unsigned)time);
 
     dead = false;
+    paused = false;
     initView();
     resetPlayer();
+    resetEnemy();
 
 }
 
@@ -38,7 +40,7 @@ void Game::initTextures() {
     playerTexture.loadFromFile("assets/ship/1.png");
     tWallTexture.loadFromFile("assets/wall/1.png");
     enemyTexture.loadFromFile("assets/ennemi/1.png");
-    playerBulletTexture.loadFromFile("assets/missile/1.png");
+    playerBulletTexture.loadFromFile("assets/bullet/1.png");
 }
 
 void Game::initView() {
@@ -85,13 +87,13 @@ void Game::run() {
         sf::Time elapsedTime = clock.restart();
         timeSinceLastUpdate += elapsedTime;
         processEvents();
-        if (!dead) {
+        if (!dead && !paused) {
             updatePlayer(elapsedTime);
             manageEnemy(elapsedTime);
             manageBullets(elapsedTime);
             manageCollisions();
+            render(elapsedTime);
         }
-        render(elapsedTime);
     }
 }
 
@@ -154,9 +156,10 @@ void Game::handleInput(sf::Keyboard::Key key, bool pressed) {
         playerIsMovingRight = pressed;
     else if (key == sf::Keyboard::Space && pressed)
         initPlayerBullet();
-    else if (key == sf::Keyboard::C && pressed) {
+    else if (key == sf::Keyboard::C && pressed)
         resetGame();
-    }
+    else if (key == sf::Keyboard::P && pressed)
+        paused = !paused;
 }
 
 sf::Vector2f Game::getScreenPositionFromScreenX(float x) {
@@ -224,6 +227,11 @@ void Game::resetPlayer() {
     player->displayable = true;
     player->setWorldPosition(Entity::screenToWorldPositions(startPos));
     player->setWorldZ(0);
+}
+
+void Game::handleGameOver() {
+    viewSpeed = 0.f;
+    dead = true;
 }
 
 void Game::generateWallAtWorldPositionY(float y) {
@@ -321,13 +329,10 @@ void Game::manageCollisions() {
                 player->getWorldPositionZ() >= entity->getWorldPositionZ() &&
                 player->getWorldPositionZ() <= entity->getWorldPositionZ() + entity->zSize) {
                 if (entity->type == EntityType::block) {
-                    viewSpeed = 0.f;
-                    dead = true;
+                    handleGameOver();
                 }
                 else if (entity->type == EntityType::enemy) {
-                    std::cout << "toupouri" << std::endl;
-                    entity->displayable = false;
-                    dead = true;
+                    handleGameOver();
                 }
             }
         }
