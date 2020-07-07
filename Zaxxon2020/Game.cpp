@@ -5,12 +5,16 @@ const float Game::playerYSpeed = 100.f;
 const sf::Vector2f Game::startPos = sf::Vector2f(0, 0);
 const float Game::zoom = 0.5;
 const float Game::zMax = 145;
+const float Game::bulletSpeed = 1.5f;
+const float Game::enemySpeed = 10;
 
 Game::Game() {
     initWindow();
     initView();
     initTextures();
     initSprites();
+
+    bulletVector = Entity::screenToWorldPositions(viewVector) * bulletSpeed;
 }
 
 void Game::resetGame() {
@@ -34,6 +38,7 @@ void Game::initTextures() {
     playerTexture.loadFromFile("assets/ship/1.png");
     tWallTexture.loadFromFile("assets/wall/1.png");
     enemyTexture.loadFromFile("assets/ennemi/1.png");
+    playerBulletTexture.loadFromFile("assets/missile/1.png");
 }
 
 void Game::initView() {
@@ -83,9 +88,36 @@ void Game::run() {
         if (!dead) {
             updatePlayer(elapsedTime);
             manageEnemy(elapsedTime);
+            manageBullets(elapsedTime);
             manageCollisions();
         }
         render(elapsedTime);
+    }
+}
+
+void Game::manageBullets(sf::Time elapsedTime) {
+    std::vector<std::shared_ptr<Bullet>> removable;
+    for (std::shared_ptr<Bullet> entity : m_bullets) {
+        entity->setWorldPosition(entity->getWorldPosition() + (bulletVector * bulletSpeed * elapsedTime.asSeconds()));
+        if (entity->getSourceLocation().y - entity->getWorldPosition().y > 500 || !entity->displayable) {
+            removable.push_back(entity);
+        }
+    }
+    for (std::shared_ptr<Bullet> toRemove : removable) {
+        for (std::vector<std::shared_ptr<Entity>>::iterator iterator = m_Entities.begin(); iterator != m_Entities.end(); iterator++) {
+            if (*iterator == toRemove) {
+                m_Entities.erase(iterator);
+                break;
+            }
+        }
+        for (std::vector<std::shared_ptr<Bullet>>::iterator iterator = m_bullets.begin(); iterator != m_bullets.end(); iterator++) {
+            if (*iterator == toRemove) {
+                m_bullets.erase(iterator);
+                break;
+            }
+        }
+        remove(m_Entities.begin(), m_Entities.end(), toRemove);
+        remove(m_bullets.begin(), m_bullets.end(), toRemove);
     }
 }
 
@@ -120,7 +152,9 @@ void Game::handleInput(sf::Keyboard::Key key, bool pressed) {
         playerIsMovingLeft = pressed;
     else if (key == sf::Keyboard::Right)
         playerIsMovingRight = pressed;
-    if (key == sf::Keyboard::C && pressed) {
+    else if (key == sf::Keyboard::Space && pressed)
+        initPlayerBullet();
+    else if (key == sf::Keyboard::C && pressed) {
         resetGame();
     }
 }
@@ -135,11 +169,25 @@ void Game::initSprites() {
     for (float wallY = -150; wallY > -1000; wallY -= 150) {
        generateWallAtWorldPositionY(wallY);
     }
-    
-    // Player
     initPlayer();
 
     initEnemy();
+}
+
+void Game::initPlayerBullet() {
+    sf::Sprite sprite;
+    sprite.setTexture(playerBulletTexture);
+
+    std::shared_ptr<Bullet> bullet = std::make_shared<Bullet>();
+    bullet->sprite = sprite;
+    bullet->setSourceLocation(player->getWorldPosition(), player->getWorldPositionZ());
+    bullet->displayable = true;
+    bullet->zSize = 3;
+    sf::Vector2f worldSize = Entity::screenToWorldPositions(sf::Vector2f(playerBulletTexture.getSize().x, playerBulletTexture.getSize().y));
+    bullet->size = sf::Vector2u(worldSize.x, worldSize.y);
+    m_bullets.push_back(bullet);
+    m_Entities.push_back(bullet);
+
 }
 
 void Game::resetEnemy() {
@@ -151,6 +199,7 @@ void Game::initEnemy() {
     sf::Sprite sprite;
     sprite.setTexture(enemyTexture);
     enemy->sprite = sprite;
+    enemy->zSize = 3;
     enemy->type = EntityType::enemy;
     enemy->displayable = false;
     sf::Vector2f worldSize = Entity::screenToWorldPositions(sf::Vector2f(enemyTexture.getSize().x, enemyTexture.getSize().y));
@@ -161,6 +210,7 @@ void Game::initEnemy() {
 void Game::initPlayer() {
     player = std::make_shared<Entity>();
     sf::Sprite mPlayer;
+    player->zSize = 3;
     mPlayer.setTexture(playerTexture);
     player->sprite = mPlayer;
     player->type = EntityType::player;
@@ -196,6 +246,7 @@ void Game::generateWallAtWorldPositionY(float y) {
             wall.setTexture(tWallTexture);
             std::shared_ptr<Entity> e_wall = std::make_shared<Entity>();
             e_wall->sprite = wall;
+            e_wall->zSize = 16;
             e_wall->type = EntityType::block;
             e_wall->displayable = true;
             e_wall->size = sf::Vector2u(wallWorldDimensions.x, wallWorldDimensions.y);
@@ -205,7 +256,7 @@ void Game::generateWallAtWorldPositionY(float y) {
             ));
             e_wall->column = column;
             e_wall->line = line;
-            e_wall->setWorldZ(16 * (10 - line));
+            e_wall->setWorldZ(e_wall->zSize * (10 - line));
             m_Entities.push_back(e_wall);
         }
     }
@@ -214,13 +265,12 @@ void Game::generateWallAtWorldPositionY(float y) {
 void Game::manageEnemy(sf::Time elapsedTime) {
     if (enemy->displayable) {
         sf::Vector2f vecPos = player->getWorldPosition();
-        enemy->setWorldPosition(sf::Vector2f(vecPos.x, enemy->getWorldPosition().y  + 2 * elapsedTime.asSeconds()));
+        enemy->setWorldPosition(sf::Vector2f(vecPos.x, enemy->getWorldPosition().y  + enemySpeed * elapsedTime.asSeconds()));
         enemy->setWorldZ(player->getWorldPositionZ());
     }
     else {
         int random = rand() % 9;
         if (random == 0) {
-            std::cout << "caca" << std::endl;
             enemy->displayable = true;
             enemy->setWorldPosition(sf::Vector2f(player->getWorldPosition().x, player->getWorldPosition().y - 200));
             enemy->setWorldZ(player->getWorldPositionZ());
@@ -242,7 +292,6 @@ void Game::updatePlayer(sf::Time elapsedTime) {
             player->setWorldZ(player->getWorldPositionZ() - playerXSpeed * elapsedTime.asSeconds());
     } else {
         if (playerIsMovingUp) {
-            // && getScreenPositionFromScreenX(Entity::worldToScreenPositions(player->getWorldPosition).x).y < 
             movement.y -= playerYSpeed;
         }
         if (playerIsMovingDown)
@@ -260,38 +309,48 @@ void Game::updatePlayer(sf::Time elapsedTime) {
 
 void Game::manageCollisions() {
 
-    sf::Vector2f playerPos = player->getWorldPosition();
-    sf::Vector2f playerPosEnd = playerPos + sf::Vector2f(player->size.x, player->size.y);
-    float playerHeight = std::abs(playerPosEnd.y - playerPos.y);
-    float playerWidth = std::abs(playerPosEnd.x - playerPos.x);
-
     for (std::shared_ptr<Entity> entity : m_Entities) {
-        if (entity->type == EntityType::player)
+        if (entity->type == EntityType::player || !entity->displayable)
             continue;
-        sf::Vector2f dims = Entity::screenToWorldPositions(sf::Vector2f(0, 8.5));
-        sf::Vector2f entityPos = entity->getWorldPosition();
-        if (entity->sprite.getGlobalBounds().intersects(player->sprite.getGlobalBounds()) &&
-            entityPos.y >= playerPos.y && entityPos.y - dims.y <= playerPos.y) {
-
-            sf::Vector2f entityPosEnd = entityPos + sf::Vector2f(entity->size.x, entity->size.y);
-            float entityHeight = std::abs(entityPosEnd.y - entityPos.y);
-            float entityWidth = std::abs(entityPosEnd.x - entityPos.x);
-
-            if (entityPos.x <= playerPos.x + playerWidth / 2 &&
-                entityPos.x + playerWidth / 2 >= playerPos.x &&
+        if (entity->type == EntityType::block || entity->type == EntityType::enemy) {
+            if (entity->sprite.getGlobalBounds().intersects(player->sprite.getGlobalBounds()) &&
+                entity->getWorldPosition().y >= player->getWorldPosition().y &&
+                entity->getWorldPosition().y - entity->size.y <= player->getWorldPosition().y &&
+                entity->getWorldPosition().x <= player->getWorldPosition().x + player->size.x / 2 &&
+                entity->getWorldPosition().x + player->size.x / 2 >= player->getWorldPosition().x &&
                 player->getWorldPositionZ() >= entity->getWorldPositionZ() &&
-                player->getWorldPositionZ() <= entity->getWorldPositionZ() + 16) {
+                player->getWorldPositionZ() <= entity->getWorldPositionZ() + entity->zSize) {
                 if (entity->type == EntityType::block) {
                     viewSpeed = 0.f;
                     dead = true;
                 }
                 else if (entity->type == EntityType::enemy) {
+                    std::cout << "toupouri" << std::endl;
                     entity->displayable = false;
+                    dead = true;
                 }
             }
-            // std::cout << " Player = (" << player->getWorldPosition().x << ", " << player->getWorldPosition().y << ", " << player->getWorldPositionZ() << ")" << std::endl;
-            // std::cout << " Wall = (" << entity->getWorldPosition().x << ", " << entity->getWorldPosition().y << ", " << entity->getWorldPositionZ() << ")" << std::endl;
-            // std::cout << " WallPos = (" << entity->line << ", " << entity->column << ")" << std::endl;
+        }
+        else if (entity->type == EntityType::weapon) {
+            if (entity->sprite.getGlobalBounds().intersects(enemy->sprite.getGlobalBounds()) &&
+
+                ((enemy->getWorldPosition().y - enemy->size.y <= entity->getWorldPosition().y && 
+                enemy->getWorldPosition().y >= entity->getWorldPosition().y) ||
+                (enemy->getWorldPosition().y <= entity->getWorldPosition().y &&
+                enemy->getWorldPosition().y >= entity->getWorldPosition().y - entity->size.y)) &&
+
+                ((enemy->getWorldPosition().x + enemy->size.x >= entity->getWorldPosition().x &&
+                enemy->getWorldPosition().x <= entity->getWorldPosition().x) ||
+                (enemy->getWorldPosition().x >= entity->getWorldPosition().x &&
+                 enemy->getWorldPosition().x <= entity->getWorldPosition().x + entity->size.x)) &&
+
+                ((enemy->getWorldPositionZ() + enemy->zSize >= entity->getWorldPositionZ() &&
+                enemy->getWorldPositionZ() <= entity->getWorldPositionZ()) ||
+                (enemy->getWorldPositionZ() >= entity->getWorldPositionZ() &&
+                enemy->getWorldPositionZ() <= entity->getWorldPositionZ() + entity->zSize)) ) {
+                entity->displayable = false;
+                enemy->displayable = false;
+            }
         }
     }
 }

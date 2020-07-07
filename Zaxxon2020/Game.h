@@ -2,7 +2,7 @@
 #ifndef GAME_H
 #define GAME_H
 
-#include "Entity.h"
+#include "Bullet.h"
 
 const int mWindowsHeight = 800;
 const int mWindowsWidth = 1000;
@@ -22,11 +22,14 @@ private:
 	static const sf::Vector2f startPos;
 	static const float zoom;
 	static const float zMax;
+	static const float bulletSpeed;
+	static const float enemySpeed;
 	bool playerIsMovingUp;
 	bool playerIsMovingLeft;
 	bool playerIsMovingRight;
 	bool playerIsMovingDown;
 	sf::Vector2f viewVector;
+	sf::Vector2f bulletVector;
 
 	bool dead = false;
 	
@@ -35,12 +38,14 @@ private:
 	sf::View view;
 
 	std::vector<std::shared_ptr<Entity>> m_Entities;
+	std::vector<std::shared_ptr<Bullet>> m_bullets;
 	std::shared_ptr<Entity> player;
 	std::shared_ptr<Entity> enemy;
 
 	sf::Texture playerTexture;
 	sf::Texture tWallTexture;
 	sf::Texture enemyTexture;
+	sf::Texture playerBulletTexture;
 private:
 	void initWindow();
 	void initSprites();
@@ -55,8 +60,11 @@ private:
 	void manageEnemy(sf::Time elapsedTime);
 	void resetEnemy();
 
+	void initPlayerBullet();
+
 	void updatePlayer(sf::Time elapsedTime);
 	void render(sf::Time elapsedTime);
+	void manageBullets(sf::Time elapsedTime);
 	void manageCollisions();
 
 	void processEvents();

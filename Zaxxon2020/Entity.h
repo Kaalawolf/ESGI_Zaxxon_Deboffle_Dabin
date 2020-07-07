@@ -27,6 +27,7 @@ public:
 	static sf::Vector2f screenToWorldPositions(sf::Vector2f positions);
 	sf::Sprite sprite;
 	sf::Vector2u size;
+	unsigned zSize;
 	EntityType type;
 	int column;
 	int line;
