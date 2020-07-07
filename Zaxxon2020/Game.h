@@ -19,7 +19,6 @@ private:
 	static const float playerXSpeed;
 	static const float playerYSpeed;
 	float viewSpeed;
-	static const sf::Vector2f startPos;
 	static const float zoom;
 	static const float zMax;
 	static const float bulletSpeed;
@@ -32,6 +31,7 @@ private:
 	float xMax;
 
 	bool paused;
+	sf::Vector2f startPos;
 	sf::Vector2f viewVector;
 	sf::Vector2f bulletVector;
 
@@ -50,6 +50,7 @@ private:
 	sf::Texture tWallTexture;
 	sf::Texture enemyTexture;
 	sf::Texture playerBulletTexture;
+	sf::Texture shadowTexture;
 private:
 	void initWindow();
 	void initSprites();
@@ -71,6 +72,8 @@ private:
 	void updatePlayer(sf::Time elapsedTime);
 	void render(sf::Time elapsedTime);
 	void renderSlider();
+	void renderShadow();
+	void renderFloor();
 	void manageBullets(sf::Time elapsedTime);
 	void manageCollisions();
 

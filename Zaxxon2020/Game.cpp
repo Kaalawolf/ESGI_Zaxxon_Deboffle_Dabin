@@ -2,7 +2,6 @@
 
 const float Game::playerXSpeed = 100.f;
 const float Game::playerYSpeed = 100.f;
-const sf::Vector2f Game::startPos = sf::Vector2f(0, 0);
 const float Game::zoom = 0.5;
 const float Game::zMax = 145;
 const float Game::bulletSpeed = 1.5f;
@@ -17,6 +16,7 @@ Game::Game() {
 
     bulletVector = Entity::screenToWorldPositions(viewVector) * bulletSpeed;
     xMax = (Entity::screenToWorldPositions(sf::Vector2f(28, 30)).x - 12) * 10;
+    startPos = sf::Vector2f(xMax / 2, 0);
 }
 
 void Game::resetGame() {
@@ -43,6 +43,7 @@ void Game::initTextures() {
     tWallTexture.loadFromFile("assets/wall/1.png");
     enemyTexture.loadFromFile("assets/ennemi/1.png");
     playerBulletTexture.loadFromFile("assets/bullet/1.png");
+    shadowTexture.loadFromFile("assets/ship/shadow.png");
 }
 
 void Game::initView() {
@@ -52,7 +53,7 @@ void Game::initView() {
     view.reset(sf::FloatRect(0, 0, mWindowsWidth, mWindowsHeight));
     //view.rotate(10.f);
     view.zoom(zoom);
-    view.setCenter(startPos);
+    view.setCenter(Entity::worldToScreenPositions(startPos));
     mWindow.setView(view);
 }
 
@@ -64,14 +65,8 @@ void Game::render(sf::Time elapsedTime) {
     v.move(viewVector * elapsedTime.asSeconds());
     mWindow.setView(v);
 
-    sf::ConvexShape convex;
-    convex.setPointCount(4);
-    convex.setPoint(0, Entity::worldToScreenPositions(sf::Vector2f(9, 0)));
-    convex.setPoint(1, Entity::worldToScreenPositions(sf::Vector2f(xMax + 20, 0)));
-    convex.setPoint(2, Entity::worldToScreenPositions(sf::Vector2f(xMax + 20, maxY)));
-    convex.setPoint(3, Entity::worldToScreenPositions(sf::Vector2f(9, maxY)));
-    convex.setFillColor(sf::Color(224, 224, 224));
-    mWindow.draw(convex);
+    renderFloor();
+    renderShadow();
 
     for (std::shared_ptr<Entity> entity : m_Entities) {
         if(entity->displayable)
@@ -81,6 +76,24 @@ void Game::render(sf::Time elapsedTime) {
 
     //Slider
     renderSlider();
+}
+
+void Game::renderFloor() {
+    sf::ConvexShape convex;
+    convex.setPointCount(4);
+    convex.setPoint(0, Entity::worldToScreenPositions(sf::Vector2f(9, 0)));
+    convex.setPoint(1, Entity::worldToScreenPositions(sf::Vector2f(xMax + 20, 0)));
+    convex.setPoint(2, Entity::worldToScreenPositions(sf::Vector2f(xMax + 20, maxY)));
+    convex.setPoint(3, Entity::worldToScreenPositions(sf::Vector2f(9, maxY)));
+    convex.setFillColor(sf::Color(224, 224, 224));
+    mWindow.draw(convex);
+}
+
+void Game::renderShadow() {
+    sf::Sprite shadow;
+    shadow.setTexture(shadowTexture);
+    shadow.setPosition(Entity::worldToScreenPositions(player->getWorldPosition()));
+    mWindow.draw(shadow);
 }
 
 void Game::renderSlider() {
@@ -93,7 +106,7 @@ void Game::renderSlider() {
 
 void Game::run() {
     // Loop game location
-    srand((unsigned)time);  
+    resetGame();
     sf::Clock clock;
     sf::Time timeSinceLastUpdate = sf::Time::Zero;
     while (mWindow.isOpen()) {
@@ -238,8 +251,8 @@ void Game::initPlayer() {
 
 void Game::resetPlayer() {
     player->displayable = true;
-    player->setWorldPosition(Entity::screenToWorldPositions(startPos));
-    player->setWorldZ(0);
+    player->setWorldPosition(startPos);
+    player->setWorldZ(zMax / 2);
 }
 
 void Game::handleGameOver() {
