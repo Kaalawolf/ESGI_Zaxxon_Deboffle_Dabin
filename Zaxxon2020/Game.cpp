@@ -13,6 +13,13 @@ Game::Game() {
     initSprites();
 }
 
+void Game::resetGame() {
+    dead = false;
+    initView();
+    resetPlayer();
+
+}
+
 void Game::initWindow() {
     // Used for initializing window -> called from ctor
     mWindow.create(sf::VideoMode(mWindowsWidth, mWindowsHeight), gameTitle, sf::Style::Close);
@@ -56,7 +63,7 @@ void Game::render(sf::Time elapsedTime) {
     //Slider
     sf::RectangleShape slider_sprite(sf::Vector2f(15, player->getWorldPositionZ()));
     slider_sprite.setFillColor(sf::Color::White);
-    slider_sprite.setPosition(v.getCenter().x - (mWindowsWidth * zoom) / 2 + 15, v.getCenter().y + (mWindowsHeight * zoom) / 2 - 110 - player->getWorldPositionZ());
+    slider_sprite.setPosition(v.getCenter().x - (mWindowsWidth * zoom) / 2 + 15, v.getCenter().y + (mWindowsHeight * zoom) / 2 - 80 - player->getWorldPositionZ());
     mWindow.draw(slider_sprite);
     mWindow.display();
 }
@@ -108,6 +115,9 @@ void Game::handleInput(sf::Keyboard::Key key, bool pressed) {
         playerIsMovingLeft = pressed;
     else if (key == sf::Keyboard::Right)
         playerIsMovingRight = pressed;
+    if (key == sf::Keyboard::C && pressed) {
+        resetGame();
+    }
 }
 
 sf::Vector2f Game::getScreenPositionFromScreenX(float x) {
@@ -123,8 +133,13 @@ void Game::initSprites() {
     
 
     // Player
+    initPlayer();
+
+
+}
+
+void Game::initPlayer() {
     player = std::make_shared<Entity>();
-    player->setWorldPosition(Entity::screenToWorldPositions(startPos));
     sf::Sprite mPlayer;
     mPlayer.setTexture(playerTexture);
     player->sprite = mPlayer;
@@ -133,8 +148,12 @@ void Game::initSprites() {
     sf::Vector2f worldSize = Entity::screenToWorldPositions(sf::Vector2f(playerTexture.getSize().x, playerTexture.getSize().y));
     player->size = sf::Vector2u(worldSize.x, worldSize.y);
     m_Entities.push_back(player);
+    resetPlayer();
+}
 
-
+void Game::resetPlayer() {
+    player->setWorldPosition(Entity::screenToWorldPositions(startPos));
+    player->setWorldZ(0);
 }
 
 void Game::generateWallAtWorldPositionY(float y) {
@@ -143,14 +162,14 @@ void Game::generateWallAtWorldPositionY(float y) {
     // y = 8.5
     // z = 16
     sf::Vector2f wallScreenDimensions(28, 30);
-    int holePos = rand() % 9;
+    int holePosX = rand() % 9;
 
 
     sf::Vector2f wallWorldDimensions = Entity::screenToWorldPositions(wallScreenDimensions);
     sf::Vector2f wallSpotWorld = sf::Vector2f(0, y);
     for (int column = 0; column < 10; column++) {
         for (int line = 10; line > 0; line--) {
-            if (line == 1 && column <= holePos + 2 && column > holePos)
+            if (line == 1 && column <= holePosX + 2 && column > holePosX)
                 continue;
             sf::Sprite wall;
 

@@ -45,6 +45,10 @@ private:
 	void initSprites();
 	void initView();
 	void initTextures();
+	void resetGame();
+
+	void resetPlayer();
+	void initPlayer();
 
 	void update(sf::Time elapsedTime);
 	void render(sf::Time elapsedTime);
