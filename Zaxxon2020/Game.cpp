@@ -14,6 +14,8 @@ Game::Game() {
 }
 
 void Game::resetGame() {
+    srand((unsigned)time);
+
     dead = false;
     initView();
     resetPlayer();
@@ -71,6 +73,7 @@ void Game::render(sf::Time elapsedTime) {
 
 void Game::run() {
     // Loop game location
+    srand((unsigned)time);  
     sf::Clock clock;
     sf::Time timeSinceLastUpdate = sf::Time::Zero;
     while (mWindow.isOpen()) {
