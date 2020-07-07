@@ -3,6 +3,7 @@
 #define GAME_H
 
 #include "Bullet.h"
+#include "EnemyBullet.h"
 
 const int mWindowsHeight = 800;
 const int mWindowsWidth = 1000;
@@ -43,6 +44,7 @@ private:
 
 	std::vector<std::shared_ptr<Entity>> m_Entities;
 	std::vector<std::shared_ptr<Bullet>> m_bullets;
+	std::vector<std::shared_ptr<EnemyBullet>> m_enemyBullets;
 	std::shared_ptr<Entity> player;
 	std::shared_ptr<Entity> enemy;
 
@@ -51,6 +53,7 @@ private:
 	sf::Texture enemyTexture;
 	sf::Texture playerBulletTexture;
 	sf::Texture shadowTexture;
+	sf::Texture enemyWeaponTexture;
 private:
 	void initWindow();
 	void initSprites();
@@ -66,6 +69,7 @@ private:
 	void resetEnemy();
 
 	void initPlayerBullet();
+	void initEnemyBullet();
 
 	void handleGameOver();
 
@@ -75,6 +79,9 @@ private:
 	void renderShadow();
 	void renderFloor();
 	void manageBullets(sf::Time elapsedTime);
+	void resetBullets();
+	void manageEnemyBullets(sf::Time elapsedTime);
+	void resetEnemyBullets();
 	void manageCollisions();
 
 	void processEvents();

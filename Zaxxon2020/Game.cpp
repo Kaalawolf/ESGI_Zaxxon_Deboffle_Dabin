@@ -27,6 +27,8 @@ void Game::resetGame() {
     initView();
     resetPlayer();
     resetEnemy();
+    resetBullets();
+    resetEnemyBullets();
 
 }
 
@@ -44,6 +46,20 @@ void Game::initTextures() {
     enemyTexture.loadFromFile("assets/ennemi/1.png");
     playerBulletTexture.loadFromFile("assets/bullet/1.png");
     shadowTexture.loadFromFile("assets/ship/shadow.png");
+    enemyWeaponTexture.loadFromFile("assets/missile/1.png");
+}
+
+void Game::initEnemyBullet() {
+    sf::Sprite sprite;
+    sprite.setTexture(enemyWeaponTexture);
+    std::shared_ptr<EnemyBullet> bullet = std::make_shared<EnemyBullet>();
+    bullet->sprite = sprite;
+    bullet->setSourceLocation(enemy->getWorldPosition(), enemy->getWorldPositionZ());
+    bullet->displayable = true;
+    bullet->zSize = 3;
+
+    m_enemyBullets.push_back(bullet);
+    m_Entities.push_back(bullet);
 }
 
 void Game::initView() {
@@ -73,9 +89,32 @@ void Game::render(sf::Time elapsedTime) {
             mWindow.draw(entity->sprite);
     }
 
-
     //Slider
     renderSlider();
+}
+
+void Game::resetBullets() {
+    for (std::shared_ptr<Entity> removable : m_bullets) {
+        for (std::vector<std::shared_ptr<Entity>>::iterator iterator = m_Entities.begin(); iterator != m_Entities.end(); iterator++) {
+            if (removable == *iterator) {
+                m_Entities.erase(iterator);
+                break;
+            }
+        }
+    }
+    m_bullets.clear();
+}
+
+void Game::resetEnemyBullets() {
+    for (std::shared_ptr<Entity> removable : m_enemyBullets) {
+        for (std::vector<std::shared_ptr<Entity>>::iterator iterator = m_Entities.begin(); iterator != m_Entities.end(); iterator++) {
+            if (removable == *iterator) {
+                m_Entities.erase(iterator);
+                break;
+            }
+        }
+    }
+    m_enemyBullets.clear();
 }
 
 void Game::renderFloor() {
@@ -118,6 +157,7 @@ void Game::run() {
             manageEnemy(elapsedTime);
             manageBullets(elapsedTime);
             manageCollisions();
+            manageEnemyBullets(elapsedTime);
             render(elapsedTime);
         }
     }
@@ -144,8 +184,6 @@ void Game::manageBullets(sf::Time elapsedTime) {
                 break;
             }
         }
-        remove(m_Entities.begin(), m_Entities.end(), toRemove);
-        remove(m_bullets.begin(), m_bullets.end(), toRemove);
     }
 }
 
@@ -260,6 +298,30 @@ void Game::handleGameOver() {
     dead = true;
 }
 
+void Game::manageEnemyBullets(sf::Time elapsedTime) {
+    std::vector<std::shared_ptr<EnemyBullet>> removable;
+    for (std::shared_ptr<EnemyBullet> entity : m_enemyBullets) {
+        entity->setWorldPosition(entity->getWorldPosition() - (bulletVector * bulletSpeed * elapsedTime.asSeconds()));
+        if (entity->getWorldPosition().y - entity->getSourceLocation().y < -500 || !entity->displayable) {
+            removable.push_back(entity);
+        }
+    }
+    for (std::shared_ptr<EnemyBullet> toRemove : removable) {
+        for (std::vector<std::shared_ptr<Entity>>::iterator iterator = m_Entities.begin(); iterator != m_Entities.end(); iterator++) {
+            if (*iterator == toRemove) {
+                m_Entities.erase(iterator);
+                break;
+            }
+        }
+        for (std::vector<std::shared_ptr<EnemyBullet>>::iterator iterator = m_enemyBullets.begin(); iterator != m_enemyBullets.end(); iterator++) {
+            if (*iterator == toRemove) {
+                m_enemyBullets.erase(iterator);
+                break;
+            }
+        }
+    }
+}
+
 void Game::generateWallAtWorldPositionY(float y) {
     // 18 y 28 x
     // x = 25.5 + 2*30  / 4
@@ -301,6 +363,11 @@ void Game::manageEnemy(sf::Time elapsedTime) {
         sf::Vector2f vecPos = player->getWorldPosition();
         enemy->setWorldPosition(sf::Vector2f(vecPos.x, enemy->getWorldPosition().y  + enemySpeed * elapsedTime.asSeconds()));
         enemy->setWorldZ(player->getWorldPositionZ());
+
+        bool random = rand() % 100 == 0;
+        if (random) {
+            initEnemyBullet();
+        }
     }
     else {
         int random = rand() % 9;
@@ -381,6 +448,27 @@ void Game::manageCollisions() {
                 enemy->getWorldPositionZ() <= entity->getWorldPositionZ() + entity->zSize)) ) {
                 entity->displayable = false;
                 enemy->displayable = false;
+            }
+        }
+        else if (entity->type == EntityType::enemyWeapon) {
+            if (entity->sprite.getGlobalBounds().intersects(player->sprite.getGlobalBounds()) &&
+
+                ((player->getWorldPosition().y - player->size.y <= entity->getWorldPosition().y &&
+                    player->getWorldPosition().y >= entity->getWorldPosition().y) ||
+                    (player->getWorldPosition().y <= entity->getWorldPosition().y &&
+                        player->getWorldPosition().y >= entity->getWorldPosition().y - entity->size.y)) &&
+
+                ((player->getWorldPosition().x + player->size.x >= entity->getWorldPosition().x &&
+                    player->getWorldPosition().x <= entity->getWorldPosition().x) ||
+                    (player->getWorldPosition().x >= entity->getWorldPosition().x &&
+                        player->getWorldPosition().x <= entity->getWorldPosition().x + entity->size.x)) &&
+
+                ((player->getWorldPositionZ() + player->zSize >= entity->getWorldPositionZ() &&
+                    player->getWorldPositionZ() <= entity->getWorldPositionZ()) ||
+                    (player->getWorldPositionZ() >= entity->getWorldPositionZ() &&
+                        player->getWorldPositionZ() <= entity->getWorldPositionZ() + entity->zSize))) {
+                entity->displayable = false;
+                handleGameOver();
             }
         }
     }
