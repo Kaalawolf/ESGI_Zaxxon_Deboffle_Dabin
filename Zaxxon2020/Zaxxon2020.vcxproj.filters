@@ -48,4 +48,24 @@
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="assets\bullet\1.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="assets\ennemi\1.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="assets\missile\1.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="assets\ship\1.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="assets\ship\shadow.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="assets\wall\1.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
 </Project>
