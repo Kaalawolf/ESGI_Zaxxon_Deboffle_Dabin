@@ -60,6 +60,7 @@ void Game::initTextures() {
 
 void Game::startMusic() {
     music.setVolume(15);
+    music.setLoop(true);
     music.play();
 }
 
