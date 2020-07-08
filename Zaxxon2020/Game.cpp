@@ -26,6 +26,7 @@ void Game::resetGame() {
     dead = false;
     paused = false;
     playerLives = MaxLives;
+    score = 0;
     initView();
     resetPlayer();
     resetEnemy();
@@ -92,20 +93,7 @@ void Game::render(sf::Time elapsedTime) {
     renderFloor();
     renderShadow();
 
-    for (std::shared_ptr<Entity> entity : m_Entities) {
-        sf::Vector2f screenPos = Entity::worldToScreenPositions(entity->getWorldPosition());
-        if (entity->type == EntityType::block) {
-            if ((screenPos.x - (mWindow.getView().getCenter().x - mWindowsWidth / 2) > 0 && screenPos.y - (mWindow.getView().getCenter().y - mWindowsHeight / 2) > 0) ||
-                (screenPos.x - (mWindow.getView().getCenter().x + mWindowsWidth / 2) < 0 && screenPos.y - (mWindow.getView().getCenter().y + mWindowsHeight / 2) < 0)) {
-                entity->displayable = true;
-            }
-            else {
-                entity->displayable = false;
-            }
-        }
-        if(entity->displayable)
-            mWindow.draw(entity->sprite);
-    }
+    renderEntities();
 
     //Slider
     renderSlider();
@@ -115,10 +103,29 @@ void Game::render(sf::Time elapsedTime) {
     mWindow.display();
 }
 
+void Game::renderEntities() {
+    for (std::shared_ptr<Entity> entity : m_Entities) {
+        sf::Vector2f screenPos = Entity::worldToScreenPositions(entity->getWorldPosition());
+        if (entity->type == EntityType::block) {
+            if ((screenPos.x - (mWindow.getView().getCenter().x - mWindowsWidth / 2) > 0 &&
+                screenPos.y - (mWindow.getView().getCenter().y - mWindowsHeight / 2) > 0) ||
+                (screenPos.x - (mWindow.getView().getCenter().x + mWindowsWidth / 2) < 0 &&
+                screenPos.y - (mWindow.getView().getCenter().y + mWindowsHeight / 2) < 0)) {
+                entity->displayable = true;
+            }
+            else {
+                entity->displayable = false;
+            }
+        }
+        if (entity->displayable)
+            mWindow.draw(entity->sprite);
+    }
+}
+
 void Game::renderLifeCount() {
     sf::Text livesCounter;
     livesCounter.setFont(textFont);
-    livesCounter.setString("Lives: " + std::to_string(playerLives));
+    livesCounter.setString("Lives: " + std::to_string(playerLives) + "\nScore: " + std::to_string(score) + (!paused ? "" : "\nPause"));
     livesCounter.setFillColor(sf::Color::Red);
     livesCounter.setCharacterSize(24);
     livesCounter.setPosition(mWindow.getView().getCenter().x - (mWindowsWidth * zoom) / 2 + 15, mWindow.getView().getCenter().y - (mWindowsHeight * zoom) / 2);
@@ -190,8 +197,11 @@ void Game::run() {
             manageBullets(elapsedTime);
             manageCollisions();
             manageEnemyBullets(elapsedTime);
-            render(elapsedTime);
+
+            score += elapsedTime.asSeconds();
+
         }
+        render(paused || dead ? sf::Time::Zero : elapsedTime);
     }
 }
 

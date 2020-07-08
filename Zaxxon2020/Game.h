@@ -31,6 +31,7 @@ private:
 	bool playerIsMovingRight;
 	bool playerIsMovingDown;
 	float xMax;
+	float score;
 	
 	int playerLives;
 	bool paused;
@@ -84,6 +85,7 @@ private:
 	void renderShadow();
 	void renderFloor();
 	void renderLifeCount();
+	void renderEntities();
 	void manageBullets(sf::Time elapsedTime);
 	void resetBullets();
 	void manageEnemyBullets(sf::Time elapsedTime);
