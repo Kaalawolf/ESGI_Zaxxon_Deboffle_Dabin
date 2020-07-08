@@ -68,4 +68,9 @@
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
+  <ItemGroup>
+    <Font Include="assets\SIXTY.TTF">
+      <Filter>Resource Files</Filter>
+    </Font>
+  </ItemGroup>
 </Project>

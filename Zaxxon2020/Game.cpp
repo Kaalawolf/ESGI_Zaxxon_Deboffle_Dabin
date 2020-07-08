@@ -7,6 +7,7 @@ const float Game::zMax = 145;
 const float Game::bulletSpeed = 1.5f;
 const float Game::enemySpeed = 10;
 const float Game::maxY = -100000;
+const int Game::MaxLives = 3;
 
 Game::Game() {
     initWindow();
@@ -24,6 +25,7 @@ void Game::resetGame() {
 
     dead = false;
     paused = false;
+    playerLives = MaxLives;
     initView();
     resetPlayer();
     resetEnemy();
@@ -47,6 +49,7 @@ void Game::initTextures() {
     playerBulletTexture.loadFromFile("assets/bullet/1.png");
     shadowTexture.loadFromFile("assets/ship/shadow.png");
     enemyWeaponTexture.loadFromFile("assets/missile/1.png");
+    textFont.loadFromFile("assets/SIXTY.ttf");
 }
 
 void Game::initEnemyBullet() {
@@ -63,11 +66,10 @@ void Game::initEnemyBullet() {
 }
 
 void Game::initView() {
-    viewSpeed = 40.f;
-    viewVector = Entity::worldToScreenPositions(sf::Vector2f(0, -1)) * viewSpeed; //Référentiel de la caméra
     // Used for initializing view -> called from ctor
+    viewSpeed = 40.f;
+    viewVector = Entity::worldToScreenPositions(sf::Vector2f(0, -1)) * viewSpeed;
     view.reset(sf::FloatRect(0, 0, mWindowsWidth, mWindowsHeight));
-    //view.rotate(10.f);
     view.zoom(zoom);
     view.setCenter(Entity::worldToScreenPositions(startPos));
     mWindow.setView(view);
@@ -91,6 +93,20 @@ void Game::render(sf::Time elapsedTime) {
 
     //Slider
     renderSlider();
+
+    renderLifeCount();
+
+    mWindow.display();
+}
+
+void Game::renderLifeCount() {
+    sf::Text livesCounter;
+    livesCounter.setFont(textFont);
+    livesCounter.setString("Lives: " + std::to_string(playerLives));
+    livesCounter.setFillColor(sf::Color::Red);
+    livesCounter.setCharacterSize(24);
+    livesCounter.setPosition(mWindow.getView().getCenter().x - (mWindowsWidth * zoom) / 2 + 15, mWindow.getView().getCenter().y - (mWindowsHeight * zoom) / 2);
+    mWindow.draw(livesCounter);
 }
 
 void Game::resetBullets() {
@@ -139,8 +155,6 @@ void Game::renderSlider() {
     sf::RectangleShape slider_sprite(sf::Vector2f(15, player->getWorldPositionZ()));
     slider_sprite.setFillColor(sf::Color::White);
     slider_sprite.setPosition(mWindow.getView().getCenter().x - (mWindowsWidth * zoom) / 2 + 15, mWindow.getView().getCenter().y + (mWindowsHeight * zoom) / 2 - 80 - player->getWorldPositionZ());
-    mWindow.draw(slider_sprite);
-    mWindow.display();
 }
 
 void Game::run() {
@@ -377,7 +391,6 @@ void Game::manageEnemy(sf::Time elapsedTime) {
             enemy->setWorldZ(player->getWorldPositionZ());
         }
     }
-
 }
 
 void Game::updatePlayer(sf::Time elapsedTime) {
@@ -448,6 +461,7 @@ void Game::manageCollisions() {
                 enemy->getWorldPositionZ() <= entity->getWorldPositionZ() + entity->zSize)) ) {
                 entity->displayable = false;
                 enemy->displayable = false;
+                playerLives = std::min(MaxLives, playerLives + 1);
             }
         }
         else if (entity->type == EntityType::enemyWeapon) {
@@ -468,7 +482,9 @@ void Game::manageCollisions() {
                     (player->getWorldPositionZ() >= entity->getWorldPositionZ() &&
                         player->getWorldPositionZ() <= entity->getWorldPositionZ() + entity->zSize))) {
                 entity->displayable = false;
-                handleGameOver();
+                playerLives--;
+                if(playerLives == 0)
+                    handleGameOver();
             }
         }
     }

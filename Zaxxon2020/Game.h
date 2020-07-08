@@ -25,12 +25,14 @@ private:
 	static const float bulletSpeed;
 	static const float enemySpeed;
 	static const float maxY;
+	static const int MaxLives;
 	bool playerIsMovingUp;
 	bool playerIsMovingLeft;
 	bool playerIsMovingRight;
 	bool playerIsMovingDown;
 	float xMax;
-
+	
+	int playerLives;
 	bool paused;
 	sf::Vector2f startPos;
 	sf::Vector2f viewVector;
@@ -48,6 +50,7 @@ private:
 	std::shared_ptr<Entity> player;
 	std::shared_ptr<Entity> enemy;
 
+	sf::Font textFont;
 	sf::Texture playerTexture;
 	sf::Texture tWallTexture;
 	sf::Texture enemyTexture;
@@ -78,6 +81,7 @@ private:
 	void renderSlider();
 	void renderShadow();
 	void renderFloor();
+	void renderLifeCount();
 	void manageBullets(sf::Time elapsedTime);
 	void resetBullets();
 	void manageEnemyBullets(sf::Time elapsedTime);
