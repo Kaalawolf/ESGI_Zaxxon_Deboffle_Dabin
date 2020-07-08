@@ -52,6 +52,8 @@ private:
 	std::shared_ptr<Entity> enemy;
 
 	sf::Music music;
+	sf::SoundBuffer laserBuffer;
+	sf::Sound laserSound;
 	sf::Font textFont;
 	sf::Texture playerTexture;
 	sf::Texture tWallTexture;

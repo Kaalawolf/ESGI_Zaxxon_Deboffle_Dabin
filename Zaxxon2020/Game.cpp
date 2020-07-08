@@ -52,6 +52,10 @@ void Game::initTextures() {
     enemyWeaponTexture.loadFromFile("assets/missile/1.png");
     textFont.loadFromFile("assets/SIXTY.ttf");
     music.openFromFile("assets/zaxxon2020.ogg");
+
+    laserBuffer.loadFromFile("assets/laserSound.wav");
+    laserSound.setBuffer(laserBuffer);
+    laserSound.setVolume(40);
 }
 
 void Game::startMusic() {
@@ -260,7 +264,7 @@ void Game::handleInput(sf::Keyboard::Key key, bool pressed) {
         playerIsMovingLeft = pressed;
     else if (key == sf::Keyboard::Right)
         playerIsMovingRight = pressed;
-    else if (key == sf::Keyboard::Space && pressed)
+    else if (key == sf::Keyboard::Space && pressed && !paused && !dead)
         initPlayerBullet();
     else if (key == sf::Keyboard::C && pressed)
         resetGame();
@@ -296,6 +300,8 @@ void Game::initPlayerBullet() {
     bullet->size = sf::Vector2u(worldSize.x, worldSize.y);
     m_bullets.push_back(bullet);
     m_Entities.push_back(bullet);
+
+    laserSound.play();
 
 }
 
