@@ -50,6 +50,7 @@ private:
 	std::shared_ptr<Entity> player;
 	std::shared_ptr<Entity> enemy;
 
+	sf::Music music;
 	sf::Font textFont;
 	sf::Texture playerTexture;
 	sf::Texture tWallTexture;
@@ -75,6 +76,7 @@ private:
 	void initEnemyBullet();
 
 	void handleGameOver();
+	void startMusic();
 
 	void updatePlayer(sf::Time elapsedTime);
 	void render(sf::Time elapsedTime);

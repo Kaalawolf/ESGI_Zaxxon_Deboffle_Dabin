@@ -50,6 +50,12 @@ void Game::initTextures() {
     shadowTexture.loadFromFile("assets/ship/shadow.png");
     enemyWeaponTexture.loadFromFile("assets/missile/1.png");
     textFont.loadFromFile("assets/SIXTY.ttf");
+    music.openFromFile("assets/plick.ogg");
+}
+
+void Game::startMusic() {
+    music.setVolume(15);
+    music.play();
 }
 
 void Game::initEnemyBullet() {
@@ -160,6 +166,7 @@ void Game::renderSlider() {
 void Game::run() {
     // Loop game location
     resetGame();
+    startMusic();
     sf::Clock clock;
     sf::Time timeSinceLastUpdate = sf::Time::Zero;
     while (mWindow.isOpen()) {
