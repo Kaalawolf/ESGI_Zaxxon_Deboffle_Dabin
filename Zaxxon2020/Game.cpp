@@ -50,7 +50,7 @@ void Game::initTextures() {
     shadowTexture.loadFromFile("assets/ship/shadow.png");
     enemyWeaponTexture.loadFromFile("assets/missile/1.png");
     textFont.loadFromFile("assets/SIXTY.ttf");
-    music.openFromFile("assets/plick.ogg");
+    music.openFromFile("assets/zaxxon2020.ogg");
 }
 
 void Game::startMusic() {
@@ -161,6 +161,7 @@ void Game::renderSlider() {
     sf::RectangleShape slider_sprite(sf::Vector2f(15, player->getWorldPositionZ()));
     slider_sprite.setFillColor(sf::Color::White);
     slider_sprite.setPosition(mWindow.getView().getCenter().x - (mWindowsWidth * zoom) / 2 + 15, mWindow.getView().getCenter().y + (mWindowsHeight * zoom) / 2 - 80 - player->getWorldPositionZ());
+    mWindow.draw(slider_sprite);
 }
 
 void Game::run() {
@@ -315,6 +316,7 @@ void Game::resetPlayer() {
 }
 
 void Game::handleGameOver() {
+    playerLives = 0;
     viewSpeed = 0.f;
     dead = true;
 }
@@ -435,13 +437,23 @@ void Game::manageCollisions() {
             continue;
         if (entity->type == EntityType::block || entity->type == EntityType::enemy) {
             if (entity->sprite.getGlobalBounds().intersects(player->sprite.getGlobalBounds()) &&
-                entity->getWorldPosition().y >= player->getWorldPosition().y &&
-                entity->getWorldPosition().y - entity->size.y <= player->getWorldPosition().y &&
-                entity->getWorldPosition().x <= player->getWorldPosition().x + player->size.x / 2 &&
-                entity->getWorldPosition().x + player->size.x / 2 >= player->getWorldPosition().x &&
-                player->getWorldPositionZ() >= entity->getWorldPositionZ() &&
-                player->getWorldPositionZ() <= entity->getWorldPositionZ() + entity->zSize) {
+                ((player->getWorldPosition().y - player->size.y <= entity->getWorldPosition().y &&
+                player->getWorldPosition().y >= entity->getWorldPosition().y) ||
+                (player->getWorldPosition().y <= entity->getWorldPosition().y &&
+                player->getWorldPosition().y >= entity->getWorldPosition().y - entity->size.y)) &&
+
+                ((player->getWorldPosition().x + player->size.x / 2 >= entity->getWorldPosition().x &&
+                player->getWorldPosition().x <= entity->getWorldPosition().x) ||
+                (player->getWorldPosition().x >= entity->getWorldPosition().x &&
+                player->getWorldPosition().x <= entity->getWorldPosition().x + entity->size.x / 2)) &&
+
+                ((player->getWorldPositionZ() + player->zSize / 2 >= entity->getWorldPositionZ() &&
+                player->getWorldPositionZ() <= entity->getWorldPositionZ()) ||
+                (player->getWorldPositionZ() >= entity->getWorldPositionZ() &&
+                player->getWorldPositionZ() <= entity->getWorldPositionZ() + entity->zSize))) {
                 if (entity->type == EntityType::block) {
+                    std::cout << player->getWorldPosition().x << ", " << player->getWorldPosition().y << ", " << player->getWorldPositionZ() << std::endl;
+                    std::cout << entity->getWorldPosition().x << ", " << entity->getWorldPosition().y << ", " << entity->getWorldPositionZ() << std::endl;
                     handleGameOver();
                 }
                 else if (entity->type == EntityType::enemy) {
@@ -475,19 +487,19 @@ void Game::manageCollisions() {
             if (entity->sprite.getGlobalBounds().intersects(player->sprite.getGlobalBounds()) &&
 
                 ((player->getWorldPosition().y - player->size.y <= entity->getWorldPosition().y &&
-                    player->getWorldPosition().y >= entity->getWorldPosition().y) ||
-                    (player->getWorldPosition().y <= entity->getWorldPosition().y &&
-                        player->getWorldPosition().y >= entity->getWorldPosition().y - entity->size.y)) &&
+                player->getWorldPosition().y >= entity->getWorldPosition().y) ||
+                (player->getWorldPosition().y <= entity->getWorldPosition().y &&
+                player->getWorldPosition().y >= entity->getWorldPosition().y - entity->size.y)) &&
 
                 ((player->getWorldPosition().x + player->size.x >= entity->getWorldPosition().x &&
-                    player->getWorldPosition().x <= entity->getWorldPosition().x) ||
-                    (player->getWorldPosition().x >= entity->getWorldPosition().x &&
-                        player->getWorldPosition().x <= entity->getWorldPosition().x + entity->size.x)) &&
+                 player->getWorldPosition().x <= entity->getWorldPosition().x) ||
+                (player->getWorldPosition().x >= entity->getWorldPosition().x &&
+                player->getWorldPosition().x <= entity->getWorldPosition().x + entity->size.x)) &&
 
                 ((player->getWorldPositionZ() + player->zSize >= entity->getWorldPositionZ() &&
-                    player->getWorldPositionZ() <= entity->getWorldPositionZ()) ||
-                    (player->getWorldPositionZ() >= entity->getWorldPositionZ() &&
-                        player->getWorldPositionZ() <= entity->getWorldPositionZ() + entity->zSize))) {
+                player->getWorldPositionZ() <= entity->getWorldPositionZ()) ||
+                (player->getWorldPositionZ() >= entity->getWorldPositionZ() &&
+                player->getWorldPositionZ() <= entity->getWorldPositionZ() + entity->zSize))) {
                 entity->displayable = false;
                 playerLives--;
                 if(playerLives == 0)

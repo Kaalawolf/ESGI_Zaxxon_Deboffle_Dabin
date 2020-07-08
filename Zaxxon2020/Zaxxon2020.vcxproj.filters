@@ -74,7 +74,7 @@
     </Font>
   </ItemGroup>
   <ItemGroup>
-    <None Include="assets\plick.ogg">
+    <None Include="assets\zaxxon2020.ogg">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
