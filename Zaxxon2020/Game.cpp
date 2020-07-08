@@ -93,6 +93,16 @@ void Game::render(sf::Time elapsedTime) {
     renderShadow();
 
     for (std::shared_ptr<Entity> entity : m_Entities) {
+        sf::Vector2f screenPos = Entity::worldToScreenPositions(entity->getWorldPosition());
+        if (entity->type == EntityType::block) {
+            if ((screenPos.x - (mWindow.getView().getCenter().x - mWindowsWidth / 2) > 0 && screenPos.y - (mWindow.getView().getCenter().y - mWindowsHeight / 2) > 0) ||
+                (screenPos.x - (mWindow.getView().getCenter().x + mWindowsWidth / 2) < 0 && screenPos.y - (mWindow.getView().getCenter().y + mWindowsHeight / 2) < 0)) {
+                entity->displayable = true;
+            }
+            else {
+                entity->displayable = false;
+            }
+        }
         if(entity->displayable)
             mWindow.draw(entity->sprite);
     }
@@ -255,7 +265,7 @@ sf::Vector2f Game::getScreenPositionFromScreenX(float x) {
 void Game::initSprites() {
     // Used to initialize all sprites -> called from ctor
 
-    for (float wallY = -150; wallY > -1000; wallY -= 150) {
+    for (float wallY = -150; wallY > maxY; wallY -= 150) {
        generateWallAtWorldPositionY(wallY);
     }
     initPlayer();
@@ -452,8 +462,6 @@ void Game::manageCollisions() {
                 (player->getWorldPositionZ() >= entity->getWorldPositionZ() &&
                 player->getWorldPositionZ() <= entity->getWorldPositionZ() + entity->zSize))) {
                 if (entity->type == EntityType::block) {
-                    std::cout << player->getWorldPosition().x << ", " << player->getWorldPosition().y << ", " << player->getWorldPositionZ() << std::endl;
-                    std::cout << entity->getWorldPosition().x << ", " << entity->getWorldPosition().y << ", " << entity->getWorldPositionZ() << std::endl;
                     handleGameOver();
                 }
                 else if (entity->type == EntityType::enemy) {
