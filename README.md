@@ -1,8 +1,5 @@
 # Zaxxoon2020 🛸
 
-## Setup SFML
-Install OpenAL on your system to enjoy the sounds : https://openal.org/downloads/
-
 ## Commands
 - Move Backward : Down Arrow
 - Move Forward  : Up Arrow
